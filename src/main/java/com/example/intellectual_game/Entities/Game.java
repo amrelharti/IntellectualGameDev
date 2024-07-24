@@ -33,7 +33,7 @@ public class Game {
     private Player currentPlayer;
 
     @DBRef
-    private List<Player> players;
+    private List<String> players;
 
 
 }
