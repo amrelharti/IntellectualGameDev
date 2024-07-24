@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { margin: 5px; padding: 10px; }
+        #gameStatus, #playerList, #gameState, #scores { margin-top: 20px; }
+        #gameActions { margin-top: 20px; }
+    </style>
+</head>
+<body>
+<h1>Quiz Game</h1>
+<div id="connectionStatus">Disconnected</div>
+
+<div>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="gameActions" style="display: none;">
+    <button onclick="createGame()">Create Game</button>
+    <button onclick="joinGame()">Join Game</button>
+    <button onclick="updateGameState()">Update Game State</button>
+    <button onclick="updateScores()">Update Scores</button>
+    <button onclick="setWinner()">Set Winner</button>
+    <button onclick="deleteGame()">Delete Game</button>
+</div>
+
+<div id="gameStatus"></div>
+<div id="playerList"></div>
+<div id="gameState"></div>
+<div id="scores"></div>
+
+<script>
+    let stompClient = null;
+    let isConnected = false;
+    let playerId = null;
+
+    function connectWebSocket() {
+        const socket = new SockJS('http://localhost:8080/ws-quiz-game');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, onConnected, onError);
+    }
+
+    function onConnected() {
+        console.log('Connected to WebSocket');
+        isConnected = true;
+        updateConnectionStatus(true);
+
+        stompClient.subscribe('/topic/game.created', onGameCreated);
+        stompClient.subscribe('/topic/game.playerAdded', onPlayerAdded);
+        stompClient.subscribe('/topic/game.stateUpdated', onGameStateUpdated);
+        stompClient.subscribe('/topic/game.scoresUpdated', onGameScoresUpdated);
+        stompClient.subscribe('/topic/game.winnerSet', onWinnerSet);
+        stompClient.subscribe('/topic/game.deleted', onGameDeleted);
+
+        if (playerId) {
+            sendMessage('/app/player.ready', {playerId});
+        }
+    }
+
+    function onError(error) {
+        console.error('WebSocket connection error:', error);
+        isConnected = false;
+        updateConnectionStatus(false);
+        setTimeout(connectWebSocket, 5000);
+    }
+
+    function sendMessage(destination, body) {
+        if (isConnected) {
+            stompClient.send(destination, {}, JSON.stringify(body));
+        } else {
+            console.error('Not connected. Unable to send message.');
+        }
+    }
+
+    function updateUI(elementId, content) {
+        document.getElementById(elementId).innerHTML = content;
+    }
+
+    function updateConnectionStatus(connected) {
+        updateUI('connectionStatus', connected ? 'Connected' : 'Disconnected');
+    }
+
+    function onGameCreated(payload) {
+        const game = JSON.parse(payload.body);
+        updateUI('gameStatus', `Game created: ${game.id}`);
+    }
+
+    function onPlayerAdded(payload) {
+        const playerInfo = JSON.parse(payload.body);
+        const playerList = document.getElementById('playerList');
+        playerList.innerHTML += `<p>Player added: ${playerInfo.playerId}</p>`;
+    }
+
+    function onGameStateUpdated(payload) {
+        const gameState = JSON.parse(payload.body);
+        updateUI('gameState', `Game state: ${gameState.state}`);
+    }
+
+    function onGameScoresUpdated(payload) {
+        const scores = JSON.parse(payload.body);
+        updateUI('scores', `Scores: ${JSON.stringify(scores)}`);
+    }
+
+    function onWinnerSet(payload) {
+        const winnerInfo = JSON.parse(payload.body);
+        updateUI('gameStatus', `Winner: ${winnerInfo.playerId}`);
+    }
+
+    function onGameDeleted(payload) {
+        const gameId = JSON.parse(payload.body);
+        updateUI('gameStatus', `Game deleted: ${gameId}`);
+    }
+
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        // Simulate a login request
+        fetch('/api/players/login?username=' + username + '&password=' + password)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.id) {
+                    playerId = data.id;
+                    document.getElementById('gameActions').style.display = 'block';
+                    console.log('Logged in as:', playerId);
+                } else {
+                    console.error('Login failed');
+                }
+            })
+            .catch(error => console.error('Error during login:', error));
+    }
+
+    function createGame() {
+        const subjectsChosen = ['Math', 'Science'];
+        const gameData = {
+            state: 'waitingForPlayers', // Assuming this is the initial state
+            subjectsChosen: subjectsChosen,
+            scores: 0,
+            answerOperations: [],
+            winner: null,
+            currentPlayer: playerId,
+            players: [playerId]
+        };
+
+        sendMessage('/app/game.create', gameData);
+    }
+
+    function joinGame() {
+        const gameId = prompt("Enter game ID to join:");
+        if (gameId) {
+            sendMessage('/app/game.addPlayer', { gameId, playerId });
+        }
+    }
+
+    function updateGameState() {
+        const gameId = prompt("Enter game ID:");
+        const newState = prompt("Enter new game state:");
+        if (gameId && newState) {
+            sendMessage('/app/game.updateState', { gameId, gameState: newState });
+        }
+    }
+
+    function updateScores() {
+        const gameId = prompt("Enter game ID:");
+        const scores = prompt("Enter scores (JSON format):");
+        if (gameId && scores) {
+            sendMessage('/app/game.updateScores', { gameId, scores: JSON.parse(scores) });
+        }
+    }
+
+    function setWinner() {
+        const gameId = prompt("Enter game ID:");
+        const winnerId = prompt("Enter winner's player ID:");
+        if (gameId && winnerId) {
+            sendMessage('/app/game.setWinner', { gameId, playerId: winnerId });
+        }
+    }
+
+    function deleteGame() {
+        const gameId = prompt("Enter game ID to delete:");
+        if (gameId) {
+            sendMessage('/app/game.delete', { gameId });
+        }
+    }
+
+    // Start the WebSocket connection when the page loads
+    connectWebSocket();
+</script>
+</body>
+</html>
