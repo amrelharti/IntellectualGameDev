@@ -18,9 +18,10 @@ import java.util.List;
 public class Player {
     @Id
     private String id;
-    private String name;
+    private String username;
     private int score;
     private String email;
+    private String password;
 
     @DBRef
     private AnswerOperation answerOperation; // many to one
