@@ -6,29 +6,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class QuestionService {
 
     @Autowired
-    private QuestionRepo repository;
+    private QuestionRepo questionRepository;
 
-    public Question save(Question question) {
-        return repository.save(question);
+    public Question createQuestion(Question question) {
+        return questionRepository.save(question);
     }
 
-    public List<Question> findAll() {
-        return repository.findAll();
+    public List<Question> getAllQuestions() {
+        return questionRepository.findAll();
     }
 
-    public Optional<Question> findById(String id) {
-        return repository.findById(id);
+    public Question getQuestionById(String id) {
+        return questionRepository.findById(id).orElseThrow(() -> new RuntimeException("Question not found"));
     }
 
-    public void deleteById(String id) {
-        repository.deleteById(id);
+    public Question updateQuestion(String id, Question question) {
+        if (!questionRepository.existsById(id)) {
+            throw new RuntimeException("Question not found");
+        }
+        question.setId(id);
+        return questionRepository.save(question);
     }
 
-    // Add other service methods as needed
+    public void deleteQuestion(String id) {
+        questionRepository.deleteById(id);
+    }
 }

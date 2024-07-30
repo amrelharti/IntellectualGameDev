@@ -1,10 +1,7 @@
 package com.example.intellectual_game.dtos;
 
 import com.example.intellectual_game.enums.GameState;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
@@ -74,5 +71,14 @@ public class Request {
     public static class JoinGameRequest {
         private String gameId;    // The ID of the game the player wants to join
         private String playerId; // The ID of the player who wants to join the game
+    }
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LoginRequest {
+        private String username;
+        private String password;
+
     }
 }

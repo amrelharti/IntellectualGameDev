@@ -15,19 +15,21 @@ public class PlayerService {
     private PlayerRepo repository;
 
     public Player createPlayer(Player player) {
-        // Add logic to hash the password before saving
         return repository.save(player);
     }
 
     public Player findByUsernameAndPassword(String username, String password) {
-        // Add logic to verify the hashed password
-        return repository.findByUsernameAndPassword(username, password)
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+        Optional<Player> player = repository.findByUsername(username);
+        if (player.isPresent() && password.equals(player.get().getPassword())) {
+            return player.get();
+        }
+        throw new RuntimeException("Invalid username or password");
     }
 
     public Optional<Player> findByUsername(String username) {
         return repository.findByUsername(username);
     }
+
     public Player save(Player player) {
         return repository.save(player);
     }
@@ -43,7 +45,4 @@ public class PlayerService {
     public void deleteById(String id) {
         repository.deleteById(id);
     }
-
-
-    // Add other service methods as needed
 }
