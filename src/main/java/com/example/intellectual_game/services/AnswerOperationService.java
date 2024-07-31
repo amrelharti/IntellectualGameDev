@@ -6,28 +6,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AnswerOperationService {
 
     @Autowired
-    private AnswerOperationRepo repository;
+    private AnswerOperationRepo answerOperationRepository;
 
-    public AnswerOperation save(AnswerOperation answerOperation) {
-        return repository.save(answerOperation);
+    public AnswerOperation createAnswerOperation(AnswerOperation answerOperation) {
+        return answerOperationRepository.save(answerOperation);
     }
 
-    public List<AnswerOperation> findAll() {
-        return repository.findAll();
+    public List<AnswerOperation> getAllAnswerOperations() {
+        return answerOperationRepository.findAll();
     }
 
-    public Optional<AnswerOperation> findById(String id) {
-        return repository.findById(id);
+    public AnswerOperation getAnswerOperationById(String id) {
+        return answerOperationRepository.findById(id).orElseThrow(() -> new RuntimeException("AnswerOperation not found"));
     }
 
-    public void deleteById(String id) {
-        repository.deleteById(id);
+    public AnswerOperation updateAnswerOperation(String id, AnswerOperation answerOperation) {
+        if (!answerOperationRepository.existsById(id)) {
+            throw new RuntimeException("AnswerOperation not found");
+        }
+        answerOperation.setId(id);
+        return answerOperationRepository.save(answerOperation);
     }
 
+    public void deleteAnswerOperation(String id) {
+        answerOperationRepository.deleteById(id);
+    }
 }
