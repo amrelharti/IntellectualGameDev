@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getAnswerOperations, addAnswerOperation, deleteAnswerOperation } from '../../services/apiService';
+import { getQuestions, addAnswerOperation } from '../../services/apiService';
 
 const ManageAnswerOperations = () => {
-    const [answerOperations, setAnswerOperations] = useState([]);
+    const [questions, setQuestions] = useState([]);
     const [newAnswerOperation, setNewAnswerOperation] = useState({
-        answerType: '',
+        answerType: 'carre', // Default to 'carre'
         answer: '',
         score: 0,
         question: '',
@@ -12,52 +12,62 @@ const ManageAnswerOperations = () => {
     });
 
     useEffect(() => {
-        fetchAnswerOperations();
+        fetchQuestions();
     }, []);
 
-    const fetchAnswerOperations = async () => {
+    const fetchQuestions = async () => {
         try {
-            const fetchedOperations = await getAnswerOperations();
-            setAnswerOperations(fetchedOperations);
+            const fetchedQuestions = await getQuestions();
+            setQuestions(fetchedQuestions);
         } catch (error) {
-            console.error('Error fetching answer operations:', error);
+            console.error('Error fetching questions:', error);
         }
     };
 
     const handleAddAnswerOperation = async () => {
+        let score;
+        switch (newAnswerOperation.answerType) {
+            case 'cash':
+                score = 15;
+                break;
+            case 'carre':
+                score = 10;
+                break;
+            case 'duo':
+                score = 4;
+                break;
+            default:
+                score = 0;
+        }
+        const operationToAdd = { ...newAnswerOperation, score };
         try {
-            const addedOperation = await addAnswerOperation(newAnswerOperation);
-            setAnswerOperations([...answerOperations, addedOperation]);
-            setNewAnswerOperation({
-                answerType: '',
-                answer: '',
-                score: 0,
-                question: '',
-                players: []
-            });
+            const addedAnswerOperation = await addAnswerOperation(operationToAdd);
+            console.log('Added Answer Operation:', addedAnswerOperation);
         } catch (error) {
             console.error('Error adding answer operation:', error);
-        }
-    };
-
-    const handleDeleteAnswerOperation = async (id) => {
-        try {
-            await deleteAnswerOperation(id);
-            setAnswerOperations(answerOperations.filter(op => op.id !== id));
-        } catch (error) {
-            console.error('Error deleting answer operation:', error);
         }
     };
 
     return (
         <div className="manage-answer-operations">
             <h3>Manage Answer Operations</h3>
-            <input
-                type="text"
+            <select
+                value={newAnswerOperation.question}
+                onChange={(e) => setNewAnswerOperation({ ...newAnswerOperation, question: e.target.value })}
+            >
+                <option value="">Select Question</option>
+                {questions.map(question => (
+                    <option key={question.id} value={question.id}>{question.text}</option>
+                ))}
+            </select>
+            <select
                 value={newAnswerOperation.answerType}
                 onChange={(e) => setNewAnswerOperation({ ...newAnswerOperation, answerType: e.target.value })}
-                placeholder="Answer type"
-            />
+            >
+                <option value="carre">Carre</option>
+                <option value="duo">Duo</option>
+                <option value="cash">Cash</option>
+            </select>
             <input
                 type="text"
                 value={newAnswerOperation.answer}
@@ -70,27 +80,7 @@ const ManageAnswerOperations = () => {
                 onChange={(e) => setNewAnswerOperation({ ...newAnswerOperation, score: parseInt(e.target.value) })}
                 placeholder="Score"
             />
-            <input
-                type="text"
-                value={newAnswerOperation.question}
-                onChange={(e) => setNewAnswerOperation({ ...newAnswerOperation, question: e.target.value })}
-                placeholder="Question ID"
-            />
-            <input
-                type="text"
-                value={newAnswerOperation.players.join(',')}
-                onChange={(e) => setNewAnswerOperation({ ...newAnswerOperation, players: e.target.value.split(',') })}
-                placeholder="Player IDs (comma separated)"
-            />
             <button onClick={handleAddAnswerOperation}>Add Answer Operation</button>
-            <ul>
-                {answerOperations.map(op => (
-                    <li key={op.id}>
-                        {op.answer} - {op.score} points
-                        <button onClick={() => handleDeleteAnswerOperation(op.id)}>Delete</button>
-                    </li>
-                ))}
-            </ul>
         </div>
     );
 };

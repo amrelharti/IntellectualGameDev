@@ -2,6 +2,7 @@ package com.example.intellectual_game.services;
 
 import com.example.intellectual_game.Entities.AnswerOperation;
 import com.example.intellectual_game.Repo.AnswerOperationRepo;
+import com.example.intellectual_game.enums.AnswerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +15,23 @@ public class AnswerOperationService {
     private AnswerOperationRepo answerOperationRepository;
 
     public AnswerOperation createAnswerOperation(AnswerOperation answerOperation) {
+        answerOperation.setAnswerType(AnswerType.carre);
+        switch (answerOperation.getAnswerType()) {
+            case carre:
+                answerOperation.setScore(10);
+                break;
+            case duo:
+                answerOperation.setScore(4);
+                break;
+            case cash:
+                answerOperation.setScore(15);
+                break;
+            default:
+                answerOperation.setScore(0);
+        }
         return answerOperationRepository.save(answerOperation);
     }
+
 
     public List<AnswerOperation> getAllAnswerOperations() {
         return answerOperationRepository.findAll();

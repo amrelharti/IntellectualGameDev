@@ -11,6 +11,7 @@ const Game = () => {
 
     useEffect(() => {
         const onConnected = () => {
+            console.log('Connected to game server');
             webSocketService.subscribe('/topic/game.created', handleGameCreated);
             webSocketService.subscribe('/topic/game.joined', handleGameJoined);
             webSocketService.subscribe('/topic/game.stateUpdated', handleGameStateUpdated);
@@ -72,5 +73,3 @@ const Game = () => {
 };
 
 export default Game;
-
-

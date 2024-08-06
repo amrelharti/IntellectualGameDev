@@ -1,12 +1,16 @@
-import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
 
-const WS_URL ='ws://localhost:8080/ws-quiz-game';
+const WS_URL = 'http://localhost:8080/ws-quiz-game';
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY = 5000;
 
-let client = null;
+let stompClient = null;
 let connectionState = 'disconnected';
 let connectedCallback = null;
 let errorCallback = null;
 let reconnectTimeout = null;
+let reconnectAttempts = 0;
 
 const connect = (onConnected, onError) => {
     connectedCallback = onConnected;
@@ -19,79 +23,61 @@ const connect = (onConnected, onError) => {
 
     connectionState = 'connecting';
 
-    client = new Client({
-        brokerURL: WS_URL,
-        connectHeaders: {},
-        debug: (str) => {
-            console.log('STOMP debug', str);
+    const socket = new SockJS(WS_URL);
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect(
+        {},
+        frame => {
+            console.log('Connected to WebSocket');
+            connectionState = 'connected';
+            reconnectAttempts = 0;
+            if (connectedCallback) connectedCallback();
         },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
-    });
-
-    client.onConnect = () => {
-        console.log('Connected to WebSocket');
-        connectionState = 'connected';
-        if (connectedCallback) connectedCallback();
-    };
-
-    client.onStompError = (frame) => {
-        console.error('STOMP error', frame);
-        connectionState = 'error';
-        if (errorCallback) errorCallback(new Error(`STOMP error: ${frame.headers.message}`));
-    };
-
-    client.onWebSocketError = (event) => {
-        console.error('WebSocket error', event);
-        connectionState = 'error';
-        if (errorCallback) errorCallback(new Error('WebSocket connection failed'));
-    };
-
-    client.onWebSocketClose = (event) => {
-        console.log('WebSocket connection closed', event);
-        connectionState = 'disconnected';
-        scheduleReconnect();
-    };
-
-    try {
-        client.activate();
-    } catch (error) {
-        console.error('Error activating STOMP client', error);
-        connectionState = 'error';
-        if (errorCallback) errorCallback(error);
-        scheduleReconnect();
-    }
+        error => {
+            console.error('WebSocket error', error);
+            connectionState = 'error';
+            if (errorCallback) errorCallback(new Error('WebSocket connection failed'));
+            scheduleReconnect();
+        }
+    );
 };
 
 const disconnect = () => {
-    if (client && (connectionState === 'connected' || connectionState === 'connecting')) {
-        client.deactivate();
-        client = null;
+    if (stompClient && (connectionState === 'connected' || connectionState === 'connecting')) {
+        stompClient.disconnect();
+        stompClient = null;
         connectionState = 'disconnected';
     }
     if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
         reconnectTimeout = null;
     }
+    reconnectAttempts = 0;
 };
 
 const scheduleReconnect = () => {
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.error('Max reconnect attempts reached. Please check your connection.');
+        return;
+    }
+
     if (!reconnectTimeout) {
         reconnectTimeout = setTimeout(() => {
             reconnectTimeout = null;
-            console.log('Attempting to reconnect...');
+            reconnectAttempts++;
+            console.log(`Attempting to reconnect... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
             connect(connectedCallback, errorCallback);
-        }, 5000);
+        }, RECONNECT_DELAY);
     }
 };
 
 const subscribe = (destination, callback) => {
-    if (!client || connectionState !== 'connected') {
+    if (!stompClient || connectionState !== 'connected') {
         console.error('Cannot subscribe, no connection');
         return null;
     }
-    return client.subscribe(destination, (message) => {
+    return stompClient.subscribe(destination, message => {
         try {
             const payload = JSON.parse(message.body);
             callback(payload);
@@ -102,11 +88,11 @@ const subscribe = (destination, callback) => {
 };
 
 const sendMessage = (destination, body) => {
-    if (!client || connectionState !== 'connected') {
+    if (!stompClient || connectionState !== 'connected') {
         console.error('Cannot send message, no connection');
         return false;
     }
-    client.publish({ destination, body: JSON.stringify(body) });
+    stompClient.send(destination, {}, JSON.stringify(body));
     return true;
 };
 
