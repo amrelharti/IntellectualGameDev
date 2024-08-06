@@ -19,5 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws-quiz-game")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
+        // Add this line to support raw WebSocket connection
+        registry.addEndpoint("/ws-quiz-game").setAllowedOriginPatterns("*");
     }
 }
