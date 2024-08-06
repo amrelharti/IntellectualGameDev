@@ -15,7 +15,7 @@ public class PlayerController {
     private PlayerService playerService;
 
 
-    @PostMapping("/register")
+    @PostMapping("/signup")
     public ResponseEntity<Player> register(@RequestBody Player player) {
         Player newPlayer = playerService.createPlayer(player);
         return ResponseEntity.ok(newPlayer);
