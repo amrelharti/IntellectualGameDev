@@ -20,11 +20,10 @@ public class AnswerOperation {
     @Id
     private String id;
     private AnswerType answerType;
-    private String answer;
+    private String answer; // The answer provided by the player
     private int score;
 
     @DBRef
-    private Question question; // one to one
-    private List<Player> players; // One To Many
-
+    private Question question; // Reference to the question being answered
+    private List<Player> players; // List of players involved in the answer operation
 }
