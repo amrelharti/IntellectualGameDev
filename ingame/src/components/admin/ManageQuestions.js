@@ -3,7 +3,11 @@ import { getQuestions, addQuestion, deleteQuestion } from '../../services/apiSer
 
 const ManageQuestions = () => {
     const [questions, setQuestions] = useState([]);
-    const [newQuestion, setNewQuestion] = useState({ text: '', correctAnswer: '', questionType: '' });
+    const [newQuestion, setNewQuestion] = useState({
+        text: '',
+        correctAnswer: '',
+        options: [''] // Initialize with one empty option
+    });
 
     useEffect(() => {
         fetchQuestions();
@@ -18,11 +22,28 @@ const ManageQuestions = () => {
         }
     };
 
+    const handleAddOption = () => {
+        setNewQuestion({
+            ...newQuestion,
+            options: [...newQuestion.options, ''] // Add a new empty option
+        });
+    };
+
+    const handleOptionChange = (index, value) => {
+        const updatedOptions = newQuestion.options.map((option, i) =>
+            i === index ? value : option
+        );
+        setNewQuestion({
+            ...newQuestion,
+            options: updatedOptions
+        });
+    };
+
     const handleAddQuestion = async () => {
         try {
             const addedQuestion = await addQuestion(newQuestion);
             setQuestions([...questions, addedQuestion]);
-            setNewQuestion({ text: '', correctAnswer: '', questionType: '' });
+            setNewQuestion({ text: '', correctAnswer: '', options: [''] });
         } catch (error) {
             console.error('Error adding question:', error);
         }
@@ -52,12 +73,16 @@ const ManageQuestions = () => {
                 onChange={(e) => setNewQuestion({ ...newQuestion, correctAnswer: e.target.value })}
                 placeholder="Correct answer"
             />
-            <input
-                type="text"
-                value={newQuestion.questionType}
-                onChange={(e) => setNewQuestion({ ...newQuestion, questionType: e.target.value })}
-                placeholder="Question type"
-            />
+            {newQuestion.options.map((option, index) => (
+                <input
+                    key={index}
+                    type="text"
+                    value={option}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    placeholder={`Option ${index + 1}`}
+                />
+            ))}
+            <button onClick={handleAddOption}>Add Option</button>
             <button onClick={handleAddQuestion}>Add Question</button>
             <ul>
                 {questions.map(question => (
