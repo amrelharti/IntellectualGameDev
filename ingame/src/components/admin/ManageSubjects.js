@@ -39,7 +39,6 @@ const ManageSubjects = () => {
 
     return (
         <div className="manage-subjects">
-            <h3>Manage Subjects</h3>
             <input
                 type="text"
                 value={newSubject}

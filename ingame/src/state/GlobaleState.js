@@ -3,6 +3,7 @@ import React, { createContext, useReducer } from 'react';
 const initialState = {
     player: null,
     game: null,
+    players: {},  // This will store player IDs and their corresponding usernames
     error: null,
 };
 
@@ -12,8 +13,15 @@ const reducer = (state, action) => {
             return { ...state, player: action.payload };
         case 'SET_GAME':
             return { ...state, game: action.payload };
-        case 'UPDATE_GAME_STATE':
-            return { ...state, game: { ...state.game, ...action.payload } };
+        case 'UPDATE_GAME':
+            return {
+                ...state,
+                game: {
+                    ...state.game,
+                    ...action.payload,
+                    players: [...new Set([...(state.game?.players || []), ...action.payload.players])]
+                }
+            };
         case 'UPDATE_SCORES':
             return { ...state, game: { ...state.game, scores: action.payload } };
         case 'SET_WINNER':

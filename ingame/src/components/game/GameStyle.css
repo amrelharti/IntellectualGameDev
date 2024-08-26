@@ -1,0 +1,129 @@
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #3B7080;
+    color: #F1E0C5;
+    height: 100%;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 20px; /* Reduced padding */
+    background-color: #45050C;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for separation */
+}
+
+.header div {
+    font-size: 24px;
+    color: #F1E0C5;
+    font-weight: bold;
+}
+
+.nav {
+    display: flex;
+    gap: 20px;
+}
+
+.nav a {
+    color: #F1E0C5;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+/* Game Page */
+.game-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(45deg, #2B4162, #3B7080);
+    background-size: 400% 400%;
+    animation: gradientAnimation 10s ease infinite;
+}
+
+/* Hero Section */
+.hero-section {
+    flex: 1;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.animated-text {
+    font-size: 36px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 5px #45050C;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        text-shadow: 2px 2px 5px #45050C;
+    }
+    50% {
+        text-shadow: 2px 2px 20px #F1E0C5;
+    }
+    100% {
+        text-shadow: 2px 2px 5px #45050C;
+    }
+}
+
+/* Start Button */
+.start-btn {
+    margin-top: 50px;
+    padding: 15px 30px;
+    font-size: 18px;
+    color: #3B7080;
+    background-color: #F1E0C5;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.start-btn:hover {
+    background-color: #45050C;
+    color: #F1E0C5;
+}
+
+.start-btn:active {
+    background-color: #3B7080;
+    color: #F1E0C5;
+}
+
+.start-btn.disabled {
+    background-color: #F1E0C5;
+    color: #3B7080;
+    cursor: not-allowed;
+}
+
+/* Background Animation */
+@keyframes gradientAnimation {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header div {
+        font-size: 20px;
+    }
+
+    .nav a {
+        font-size: 16px;
+    }
+
+    .animated-text {
+        font-size: 28px;
+    }
+
+    .start-btn {
+        padding: 12px 25px;
+        font-size: 16px;
+    }
+}

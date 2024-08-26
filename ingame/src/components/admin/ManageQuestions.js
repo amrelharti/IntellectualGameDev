@@ -60,7 +60,6 @@ const ManageQuestions = () => {
 
     return (
         <div className="manage-questions">
-            <h3>Manage Questions</h3>
             <input
                 type="text"
                 value={newQuestion.text}

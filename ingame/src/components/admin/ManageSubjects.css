@@ -1,0 +1,51 @@
+.manage-subjects input {
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+}
+
+.manage-subjects button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #3B7080;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.manage-subjects button:hover {
+    background-color: #45050C;
+}
+
+.manage-subjects button:active {
+    transform: scale(0.98);
+}
+
+.manage-subjects ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.manage-subjects li {
+    background-color: #f1e0c5;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.manage-subjects li button {
+    background-color: #45050C;
+    padding: 5px;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+.manage-subjects li button:hover {
+    background-color: #3B7080;
+}

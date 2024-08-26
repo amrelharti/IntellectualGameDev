@@ -50,7 +50,6 @@ const ManageAnswerOperations = () => {
 
     return (
         <div className="manage-answer-operations">
-            <h3>Manage Answer Operations</h3>
             <select
                 value={newAnswerOperation.question}
                 onChange={(e) => setNewAnswerOperation({ ...newAnswerOperation, question: e.target.value })}
