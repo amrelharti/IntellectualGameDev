@@ -1,3 +1,4 @@
+// src/main/java/com/example/intellectual_game/Controllers/SubjectController.java
 package com.example.intellectual_game.Controllers;
 
 import com.example.intellectual_game.Entities.Subject;

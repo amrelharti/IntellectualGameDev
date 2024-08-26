@@ -1,7 +1,8 @@
 package com.example.intellectual_game.enums;
 
 public enum GameState {
-    inProgress,
-    isFinished,
-    waitingForPlayers;
+    WAITING_FOR_PLAYERS,
+    STARTED,
+    IN_PROGRESS,
+    FINISHED
 }
