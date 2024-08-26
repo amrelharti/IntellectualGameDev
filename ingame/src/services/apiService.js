@@ -122,4 +122,41 @@ export const deleteAnswerOperation = async (id) => {
     }
 };
 
+// Add lobby-related API calls if needed
+export const createLobby = async (playerId) => {
+    try {
+        const response = await apiClient.post('/games', { playerId }); // Assuming /games is the endpoint for creating a game/lobby
+        return response.data;
+    } catch (error) {
+        throw new Error(handleApiError(error));
+    }
+};
+
+export const joinLobby = async (gameId, playerId) => {
+    try {
+        const response = await apiClient.post(`/games/${gameId}/players`, { playerId }); // Assuming adding player to a game
+        return response.data;
+    } catch (error) {
+        throw new Error(handleApiError(error));
+    }
+};
+
+export const markPlayerReady = async (gameId, playerId) => {
+    try {
+        const response = await apiClient.post(`/games/${gameId}/players/${playerId}/ready`); // Endpoint for marking player as ready
+        return response.data;
+    } catch (error) {
+        throw new Error(handleApiError(error));
+    }
+};
+
+export const startLobby = async (gameId) => {
+    try {
+        const response = await apiClient.post(`/games/${gameId}/start`); // Endpoint for starting the game
+        return response.data;
+    } catch (error) {
+        throw new Error(handleApiError(error));
+    }
+};
+
 export default apiClient;
