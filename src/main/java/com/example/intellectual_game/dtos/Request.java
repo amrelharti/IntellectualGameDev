@@ -81,4 +81,57 @@ public class Request {
         private String password;
 
     }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class MarkReadyRequest {
+        private String gameId;
+        private String playerId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class StartGameRequest {
+        private String gameId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LobbyCreationRequest {
+        private String playerId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LobbyJoinRequest {
+        private String lobbyId;
+        private String playerId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ReadyRequest {
+        private String lobbyId;
+        private String playerId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class StartRequest {
+        private String lobbyId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class AutoJoinRequest {
+        private String playerId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PlayerNameRequest {
+        private String playerId;
+
+    }
+
 }

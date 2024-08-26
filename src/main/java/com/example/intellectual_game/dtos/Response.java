@@ -1,10 +1,13 @@
 package com.example.intellectual_game.dtos;
 
+import com.example.intellectual_game.Entities.Player;
 import com.example.intellectual_game.enums.GameState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 public class Response {
 
@@ -62,7 +65,7 @@ public class Response {
     public static class PlayerJoinedResponse {
         private String gameId;
         private String playerId;
-        private String message; // Optional message, e.g., "Player joined successfully"
+        private List<String> players;
     }
 
     @Data
@@ -74,5 +77,47 @@ public class Response {
         private String playerId;
         private String subject;
         private String message; // Optional message, e.g., "Subject chosen successfully"
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class PlayerReadyResponse {
+        private String gameId;
+        private String playerId;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class GameStartedResponse {
+        private String gameId;
+        private GameState gameState;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class GameWaitingResponse {
+        private String gameId;
+        private GameState state;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class AutoJoinResponse {
+        private String gameId;
+        private GameState gameState;
+        private List<String> players;
+        private String message;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class PlayerNameResponse {
+        private String playerId;
+        private String username;
     }
 }
