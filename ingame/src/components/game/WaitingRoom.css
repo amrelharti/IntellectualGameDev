@@ -1,0 +1,22 @@
+.waiting-room {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.players-list {
+    margin-top: 20px;
+}
+
+.players-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.players-list li {
+    background-color: #f0f0f0;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
