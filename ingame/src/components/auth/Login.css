@@ -1,0 +1,115 @@
+body {
+    background: linear-gradient(135deg, #3B7080, #2B4162);
+    color: #F1E0C5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.login-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 450px;
+    background-color: #F1E0C5;
+    border-radius: 20px; /* Larger radius for a softer look */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); /* Deep shadow for more depth */
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: -15%;
+    left: -15%;
+    width: 130%;
+    height: 130%;
+    background: radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.1), transparent);
+    z-index: 0;
+    transform: rotate(-5deg); /* Less rotation for a subtle effect */
+}
+
+.card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.card-title {
+    color: #45050C;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 24px; /* Slightly larger title font */
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    background-color: #FFF;
+    border-radius: 12px; /* Rounded corners */
+    border: none; /* Remove border */
+    color: #45050C;
+    padding: 14px 20px;
+    font-size: 16px;
+    transition: box-shadow 0.3s;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(59, 112, 128, 0.25); /* Subtle focus effect */
+    outline: none;
+}
+
+.login-btn {
+    background-color: #45050C;
+    border: none;
+    color: #F1E0C5;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    width: 100%;
+}
+
+.login-btn:hover {
+    background-color: #3B7080;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-btn:active {
+    background-color: #2B4162;
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.btn-link {
+    color: #45050C;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: #3B7080;
+    text-decoration: underline;
+}
+
+.text-muted {
+    color: #6c757d;
+}
