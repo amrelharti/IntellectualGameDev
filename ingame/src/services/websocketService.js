@@ -9,6 +9,7 @@ let stompClient = null;
 let connectionState = 'disconnected';
 let connectedCallback = null;
 let errorCallback = null;
+let reconnectAttempts = 0;
 const subscriptions = {};
 
 const connect = (onConnected, onError) => {
@@ -24,7 +25,7 @@ const connect = (onConnected, onError) => {
     stompClient = new Client({
         webSocketFactory: () => new SockJS(WS_URL),
         connectHeaders: {},
-        reconnectDelay: RECONNECT_DELAY,
+        reconnectDelay: 0,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000
     });
@@ -32,6 +33,7 @@ const connect = (onConnected, onError) => {
     stompClient.onConnect = (frame) => {
         console.log('Connected to WebSocket');
         connectionState = 'connected';
+        reconnectAttempts = 0;
         if (connectedCallback) connectedCallback(frame);
     };
 
@@ -39,11 +41,16 @@ const connect = (onConnected, onError) => {
         console.error('Broker reported error: ' + frame.headers['message']);
         connectionState = 'error';
         if (errorCallback) errorCallback(new Error('WebSocket connection failed'));
-        // Attempt to reconnect
-        setTimeout(() => {
-            console.log('Attempting to reconnect...');
-            connect(onConnected, onError);
-        }, RECONNECT_DELAY);
+
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            reconnectAttempts++;
+            setTimeout(() => {
+                console.log('Attempting to reconnect...');
+                connect(onConnected, onError);
+            }, RECONNECT_DELAY);
+        } else {
+            console.error('Max reconnect attempts reached');
+        }
     };
 
     stompClient.activate();
@@ -87,7 +94,7 @@ const ensureConnection = () => {
         if (connectionState === 'connected') {
             resolve();
         } else {
-            connect(resolve, reject);
+            connect(() => resolve(), reject);
         }
     });
 };
@@ -121,10 +128,10 @@ const sendMessage = (destination, body) => {
 
         stompClient.publish({
             destination: destination,
-            body: body,
+            body: JSON.stringify(body),
             headers: {
                 'content-type': 'application/json',
-                'reply-to': '/user/queue/game.joined'
+                'reply-to': replyTo
             }
         });
         console.log('Message sent, waiting for response...');
@@ -133,28 +140,23 @@ const sendMessage = (destination, body) => {
 
 const autoJoinGame = (playerId) => {
     return new Promise((resolve, reject) => {
-        console.log(`AutoJoinGame called with playerId: ${playerId}`);
-
-        if (stompClient && stompClient.connected) {
+        if (stompClient && connectionState === 'connected') {
             const destination = '/app/game.autoJoin';
             const body = JSON.stringify({ playerId });
 
-            console.log(`Sending message to: ${destination} Body: ${body}`);
-
-            const subscriptionId = stompClient.subscribe('/user/queue/responses', (message) => {
-                console.log('Received message on /user/queue/responses:', message);
-                stompClient.unsubscribe(subscriptionId);
+            const subscription = stompClient.subscribe('/user/queue/responses', (message) => {
+                subscription.unsubscribe();
 
                 try {
                     const response = JSON.parse(message.body);
-                    console.log('Parsed response:', response);
                     if (response.gameId) {
+                        // Ensure the gameState is set to WAITING_FOR_PLAYERS
+                        response.gameState = 'WAITING_FOR_PLAYERS';
                         resolve(response);
                     } else {
                         reject(new Error(response.message || 'Failed to auto-join game'));
                     }
                 } catch (error) {
-                    console.error('Error parsing auto-join response:', error);
                     reject(error);
                 }
             });
@@ -164,14 +166,49 @@ const autoJoinGame = (playerId) => {
                 body: body,
                 headers: { 'content-type': 'application/json' }
             });
-
-            console.log('Message sent, waiting for response...');
         } else {
             reject(new Error('STOMP client is not connected'));
         }
     });
 };
 
+const markPlayerReady = (gameId, playerId) => {
+    return new Promise((resolve, reject) => {
+        if (stompClient && connectionState === 'connected') {
+            const destination = '/app/game.playerReady';
+            const body = JSON.stringify({ gameId, playerId });
+
+            stompClient.publish({
+                destination: destination,
+                body: body,
+                headers: { 'content-type': 'application/json' }
+            });
+
+            resolve();
+        } else {
+            reject(new Error('STOMP client is not connected'));
+        }
+    });
+};
+
+const startGame = (gameId) => {
+    return new Promise((resolve, reject) => {
+        if (stompClient && connectionState === 'connected') {
+            const destination = '/app/game.start';
+            const body = JSON.stringify({ gameId });
+
+            stompClient.publish({
+                destination: destination,
+                body: body,
+                headers: { 'content-type': 'application/json' }
+            });
+
+            resolve();
+        } else {
+            reject(new Error('STOMP client is not connected'));
+        }
+    });
+};
 const joinLobby = (lobbyId, playerId) => {
     return sendMessage('/app/game.addPlayer', { gameId: lobbyId, playerId: playerId })
         .then(response => {
@@ -182,20 +219,26 @@ const joinLobby = (lobbyId, playerId) => {
         });
 };
 
-const startLobby = (lobbyId) => {
-    return sendMessage('/app/lobby.start', { lobbyId });
+const startLobby = async (lobbyId) => {
+    try {
+        await sendMessage('/app/lobby.start', { lobbyId });
+        console.log('Lobby start message sent successfully');
+    } catch (error) {
+        console.error('Error sending start lobby message:', error);
+        throw error;
+    }
 };
 
 const getPlayerName = async (playerId) => {
     return new Promise((resolve, reject) => {
         const destination = '/app/getPlayerName';
-        const body = JSON.stringify({ playerId: playerId });
+        const body = JSON.stringify({ playerId });
 
         const subscription = stompClient.subscribe('/user/queue/playerName', (message) => {
             subscription.unsubscribe();
             try {
                 const response = JSON.parse(message.body);
-                resolve(response.username); // Ensure the server returns { username: "playerName" }
+                resolve(response.username);
             } catch (error) {
                 console.error('Error parsing player name response:', error);
                 reject(error);
@@ -210,6 +253,26 @@ const getPlayerName = async (playerId) => {
     });
 };
 
+const subscribeToGameUpdates = (gameId, callback) => {
+    const destination = `/topic/game.${gameId}.update`;
+    return subscribe(destination, (message) => {
+        try {
+            const payload = JSON.parse(message.body);
+            callback(payload.gameState);
+        } catch (error) {
+            console.error('Error parsing game update message', error);
+        }
+    });
+};
+
+const unsubscribeFromGameUpdates = (gameId) => {
+    const destination = `/topic/game.${gameId}.update`;
+    unsubscribe(destination);
+};
+
+
+
+
 const WebSocketService = {
     connect,
     disconnect,
@@ -218,12 +281,25 @@ const WebSocketService = {
     sendMessage,
     getConnectionState: () => connectionState,
     createLobby: (playerId) => sendMessage('/app/game.create', { playerId }),
-    joinLobby: (lobbyId, playerId) => sendMessage('/app/game.join', { lobbyId, playerId }),
-    markPlayerReady: (lobbyId, playerId) => sendMessage('/app/lobby.ready', { lobbyId, playerId }),
+    joinLobby,
     autoJoinGame,
     getPlayerName,
     ensureConnection,
-    startLobby
+    startLobby,
+    subscribeToGameUpdates,
+    unsubscribeFromGameUpdates,
+    markPlayerReady,
+    startGame: async (gameId) => {
+        return sendMessage('/app/game.start', { gameId });
+    },
+    chooseSubject: (gameId, playerId, subject) =>
+        sendMessage('/app/game.chooseSubject', { gameId, playerId, subject }),
+    requestQuestion: (gameId, playerId) =>
+        sendMessage('/app/game.requestQuestion', { gameId, playerId }),
+    submitAnswer: (gameId, playerId, questionId, answer, answerType) =>
+        sendMessage('/app/game.submitAnswer', { gameId, playerId, questionId, answer, answerType }),
+    endTurn: (gameId) =>
+        sendMessage('/app/game.endTurn', { gameId }),
 };
 
 export default WebSocketService;

@@ -3,27 +3,21 @@ import './Categories.css';
 import scienceImage from '../../images/science.jpg';
 import olympics from '../../images/olympics.jpg';
 import history from '../../images/history.webp';
-import cinema from '../../images/cinema2.jpg';
-
-
+import vg from '../../images/VG.jpg';
+import food from '../../images/food.webp';
+import f1 from '../../images/F1.jpg';
+import sport from '../../images/sport.jpg';
+import code from '../../images/code.jpg';
 
 const categories = [
-    {
-        title: "Science",
-        image: scienceImage
-    },
-
-    {
-        title: "Olympics",
-        image: olympics
-    },
-    {
-        title: "History",
-        image: history
-    },
-
-
-    // Add more categories as needed
+    { title: "Science", image: scienceImage },
+    { title: "Coding", image: code },
+    { title: "Sport", image: sport },
+    { title: "Video Games", image: vg },
+    { title: "Food", image: food },
+    { title: "Formula 1", image: f1 },
+    { title: "Olympics", image: olympics },
+    { title: "History", image: history },
 ];
 
 const Categories = () => {

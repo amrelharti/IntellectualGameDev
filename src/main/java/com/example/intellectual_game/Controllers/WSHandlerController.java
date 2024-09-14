@@ -2,11 +2,13 @@ package com.example.intellectual_game.Controllers;
 
 import com.example.intellectual_game.Entities.Game;
 import com.example.intellectual_game.Entities.Player;
+import com.example.intellectual_game.Entities.Question;
 import com.example.intellectual_game.Repo.PlayerRepo;
 import com.example.intellectual_game.enums.GameState;
 import com.example.intellectual_game.services.GameService;
 import com.example.intellectual_game.dtos.Request;
 import com.example.intellectual_game.dtos.Response;
+import com.example.intellectual_game.services.SinglePlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -17,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class WSHandlerController {
@@ -25,6 +29,8 @@ public class WSHandlerController {
     private GameService gameService;
     @Autowired
     PlayerRepo playerRepository;
+    @Autowired
+    private SinglePlayerService singlePlayerService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -51,19 +57,7 @@ public class WSHandlerController {
         return new Response.PlayerAddedResponse(game.getId(), request.getPlayerId());
     }
 
-    @MessageMapping("/game.markReady")
-    @SendTo("/topic/game.ready")
-    public Response.PlayerReadyResponse markPlayerReady(Request.MarkReadyRequest request) {
-        Game game = gameService.markPlayerReady(request.getGameId(), request.getPlayerId());
-        return new Response.PlayerReadyResponse(game.getId(), request.getPlayerId());
-    }
 
-    @MessageMapping("/game.start")
-    @SendTo("/topic/game.started")
-    public Response.GameStartedResponse startGame(Request.StartGameRequest request) {
-        Game game = gameService.startGame(request.getGameId());
-        return new Response.GameStartedResponse(game.getId(), game.getState());
-    }
 
     @MessageMapping("/game.updateState")
     @SendTo("/topic/game.stateUpdated")
@@ -75,15 +69,34 @@ public class WSHandlerController {
     @MessageMapping("/game.updateScores")
     @SendTo("/topic/game.scoresUpdated")
     public Response.GameScoresUpdatedResponse updateGameScores(Request.UpdateGameScoresRequest request) {
-        Game game = gameService.updateGameScores(request.getGameId(), request.getScores());
-        return new Response.GameScoresUpdatedResponse(game.getId(), game.getScores());
+        try {
+            // Expect scores to be a Map<String, Integer>
+            Map<String, Integer> scores = request.getScores(); // Ensure this is a Map, not an int
+
+            // Call the service with the correct type
+            Game game = gameService.updateGameScores(request.getGameId(), scores);
+
+            // Handle potential null values
+            int totalScores = game.getScores() != null ? game.getScores() : 0;
+
+            return new Response.GameScoresUpdatedResponse(game.getId(), totalScores);
+        } catch (Exception e) {
+            logger.error("Error updating game scores", e);
+            return new Response.GameScoresUpdatedResponse(request.getGameId(), 0); // Default to 0 in case of error
+        }
     }
+
 
     @MessageMapping("/game.setWinner")
     @SendTo("/topic/game.winnerSet")
     public Response.GameWinnerSetResponse setWinner(Request.SetWinnerRequest request) {
-        Game game = gameService.setWinner(request.getGameId(), request.getPlayerId());
-        return new Response.GameWinnerSetResponse(game.getId(), request.getPlayerId());
+        try {
+            gameService.setWinner(request.getGameId(), request.getPlayerId());
+            return new Response.GameWinnerSetResponse(request.getGameId(), request.getPlayerId());
+        } catch (Exception e) {
+            logger.error("Error setting winner", e);
+            return new Response.GameWinnerSetResponse(request.getGameId(), null);
+        }
     }
 
     @MessageMapping("/game.delete")
@@ -101,7 +114,6 @@ public class WSHandlerController {
                 .gameId(game.getId())
                 .playerId(request.getPlayerId())
                 .subject(request.getSubject())
-                .message("Subject chosen successfully")
                 .build();
     }
 
@@ -147,4 +159,61 @@ public class WSHandlerController {
         return new Response.PlayerNameResponse(player.getId(), player.getUsername()); // Ensure the response has username
     }
 
+    @MessageMapping("/lobby.ready")
+    @SendTo("/topic/game.{gameId}.playerReady")
+    public Response.PlayerReadyResponse markPlayerReady(Request.MarkReadyRequest request) {
+        Game game = gameService.markPlayerReady(request.getGameId(), request.getPlayerId());
+        boolean allPlayersReady = game.getReadyPlayers().size() == game.getPlayers().size();
+
+        if (allPlayersReady) {
+            game.setState(GameState.STARTING);
+            gameService.updateGameState(game.getId(), GameState.STARTING);
+            // Trigger game start
+            startGame(new Request.StartGameRequest(game.getId()));
+        }
+
+        return new Response.PlayerReadyResponse();
+    }
+
+    @MessageMapping("/game.start")
+    @SendTo("/topic/game.{gameId}.start")
+    public Response.GameStartedResponse startGame(Request.StartGameRequest request) {
+        Game game = gameService.startGame(request.getGameId());
+        return new Response.GameStartedResponse(game.getId(), game.getState());
+    }
+
+    @MessageMapping("/game.createSinglePlayer")
+    @SendToUser("/queue/responses")
+    public Response.GameCreatedResponse createSinglePlayerGame(Request.CreateSinglePlayerRequest request) {
+        Game game = singlePlayerService.createSinglePlayerGame(request.getPlayerId());
+        return new Response.GameCreatedResponse(game.getId(), game.getState());
+    }
+
+    @MessageMapping("/game.chooseSubject")
+    @SendToUser("/queue/responses")
+    public Response.SubjectChosenResponse chooseSinglePlayerSubject(Request.ChooseSubjectRequest request) {
+        Game game = singlePlayerService.chooseSubject(request.getGameId(), request.getSubject());
+        return new Response.SubjectChosenResponse(game.getId(), request.getPlayerId(), request.getSubject());
+    }
+
+    @MessageMapping("/game.getNextQuestion")
+    @SendToUser("/queue/responses")
+    public Response.NextQuestionResponse getNextQuestion(Request.NextQuestionRequest request) {
+        Question question = singlePlayerService.getNextQuestion(request.getGameId());
+        return new Response.NextQuestionResponse(question.getId(), question.getText(), question.getOptions());
+    }
+
+    @MessageMapping("/game.submitAnswer")
+    @SendToUser("/queue/responses")
+    public Response.AnswerSubmittedResponse submitSinglePlayerAnswer(Request.SubmitAnswerRequest request) {
+        Game game = singlePlayerService.submitAnswer(request.getGameId(), request.getQuestionId(), request.getAnswer(), request.getAnswerType());
+        return new Response.AnswerSubmittedResponse(game.getId(), game.getScores(), game.getState());
+    }
+
+    @MessageMapping("/game.getAvailableSubjects")
+    @SendToUser("/queue/responses")
+    public Response.AvailableSubjectsResponse getAvailableSubjects() {
+        List<String> subjects = singlePlayerService.getAvailableSubjects();
+        return new Response.AvailableSubjectsResponse(subjects);
+    }
 }

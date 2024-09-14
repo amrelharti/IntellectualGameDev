@@ -1,26 +1,26 @@
 .categories-container {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(200px, 1fr));
+    gap: 50px;
     padding: 30px;
-    flex: 1;
+    justify-items: center;
+    margin-bottom: 50px;
 }
 
 .category-card {
     background-color: #F1E0C5;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 7.5px;
-    margin: 20px;
     text-align: center;
-    width: 200px;
+    height: 200px;
+    width: 200px; /* Ensure this matches the grid column size */
 }
 
 .category-image {
     width: 100%;
-    height: auto;
+    height: 150px; /* Fixed height */
+    object-fit: cover; /* Ensures images maintain aspect ratio and cover the space */
     border-radius: 10px;
-
 }
 
 .category-title {

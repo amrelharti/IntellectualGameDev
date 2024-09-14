@@ -1,0 +1,124 @@
+/* Overall Page Style */
+.landing-page {
+    background-image: url('../../images/astro.webp'); /* Replace with your background image path */
+    background-size: cover;
+    background-attachment: fixed; /* Parallax effect */
+    background-position: center;
+    height: 100vh;
+    color: #F1E0C5;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+}
+
+/* Hero Section */
+.hero-content {
+    text-align: center;
+    animation: fadeIn 2s ease-in-out; /* Fade-in animation */
+    backdrop-filter: blur(5px); /* Blurred background */
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+    border-radius: 10px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+}
+
+/* Typewriter Effect */
+.typewriter {
+    overflow: hidden; /* Ensures text stays within the container */
+    white-space: nowrap; /* Prevents wrapping */
+    border-right: .15em solid #F1E0C5; /* Cursor effect */
+    animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+    font-size: 64px;
+    margin-bottom: 20px;
+    color: #F1E0C5;
+    text-shadow: 2px 2px 10px #45050C;
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: #F1E0C5; }
+}
+
+/* Description with Fade and Scale */
+.game-description1 {
+    font-size: 22px;
+    margin-bottom: 40px;
+    max-width: 600px;
+    color: #F1E0C5;
+    animation: fadeScale 2s forwards;
+}
+
+@keyframes fadeScale {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* Button Styles */
+.button-group {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+}
+
+.action-btn {
+    padding: 15px 30px;
+    font-size: 20px;
+    background-color: #45050C;
+    color: #F1E0C5;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:hover {
+    background-color: #3B7080;
+    color: #F1E0C5;
+    transform: translateY(-5px); /* Hover effect */
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+    font-size: 36px;
+    position: absolute;
+    bottom: 20px;
+    color: #F1E0C5;
+    animation: bounceScroll 1.5s infinite; /* Bouncing scroll indicator */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes bounceScroll {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .typewriter {
+        font-size: 48px;
+    }
+
+    .game-description {
+        font-size: 18px;
+    }
+
+    .action-btn {
+        padding: 12px 25px;
+        font-size: 18px;
+    }
+}

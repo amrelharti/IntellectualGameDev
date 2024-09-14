@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface GameRepo extends MongoRepository<Game, String> {
-    Game findFirstByState(GameState state);
 
     List<Game> findByState(GameState gameState);
+
 }

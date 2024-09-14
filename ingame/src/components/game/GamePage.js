@@ -1,3 +1,4 @@
+// GamePage.js
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../../state/GlobaleState';
@@ -5,6 +6,7 @@ import { WebSocketContext } from '../../services/WebSocketProvider';
 import '../game/GameStyle.css';
 import Categories from '../design/Categories';
 import Footer from '../design/Footer';
+import Slideshow from "./slideShow";
 
 const GamePage = () => {
     const { state, dispatch } = useContext(GlobalContext);
@@ -32,6 +34,9 @@ const GamePage = () => {
             console.log('Dispatching SET_GAME action');
             dispatch({ type: 'SET_GAME', payload: game });
             console.log('Game set in state, game ID:', game.gameId);
+
+            dispatch({ type: 'SET_GAME_STATE', payload: 'WAITING_FOR_PLAYERS' });
+            console.log('Game state set to WAITING_FOR_PLAYERS');
 
             console.log('Navigating to waiting room...');
             navigate(`/waitingroom/${game.gameId}`);
@@ -70,8 +75,23 @@ const GamePage = () => {
                     disabled={isConnecting || !isConnected}>
                     {isConnecting ? 'Connecting...' : 'Start Game'}
                 </button>
+                <Slideshow />
+                <div className="dynamic-hero-section">
+                    <div className="dynamic-content">
+                        <div className="decorative-icons">
+                            <span className="icon icon-lightbulb"></span>
+                            <span className="icon icon-trophy"></span>
+                            <span className="icon icon-quiz"></span>
+                        </div>
+                        <div className="dynamic-text">
+                            <h2>Unleash Your Knowledge!</h2>
+                            <p>
+                                Dive into an exciting trivia adventure with challenges tailored for you! Play alone or against friends in real-time, choosing your answer style: strategic, bold, or calculated. Each game is a step towards becoming the ultimate quiz champion. Ready to play? Hit the start button and let the journey begin!
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-
             <Categories />
             <Footer />
 

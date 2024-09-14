@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 public class Request {
 
@@ -37,8 +38,10 @@ public class Request {
     @NoArgsConstructor
     public static class UpdateGameScoresRequest {
         private String gameId;
-        private int scores;
+        private Map<String, Integer> scores; // Ensure this is a Map
+
     }
+
 
     @Data
     @AllArgsConstructor
@@ -133,5 +136,51 @@ public class Request {
         private String playerId;
 
     }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+        public static class RequestQuestionRequest {
+            private String gameId;
+            private String playerId;
+        }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+        public static class SubmitAnswerRequest {
+            private String gameId;
+            private String playerId;
+            private String questionId;
+            private String answer;
+            private String answerType;
+        }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+        public static class EndTurnRequest {
+            private String gameId;
+        }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GameStartEvent {
+        private String message;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateSinglePlayerRequest {
+        private String playerId;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NextQuestionRequest {
+        private String gameId;
+    }
+
+
 
 }

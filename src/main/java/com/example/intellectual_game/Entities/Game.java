@@ -21,11 +21,12 @@ public class Game {
     private String id;
     private GameState state;
     private List<String> subjectsChosen = new ArrayList<>();
-    private int scores;
+    private Integer scores;
 
     private List<AnswerOperation> answerOperations = new ArrayList<>();
     private Player winner;
     private Player currentPlayer;
     private List<String> players = new ArrayList<>();
     private List<String> readyPlayers = new ArrayList<>();
+    private List<String> usedQuestionIds = new ArrayList<>();  // New field
 }

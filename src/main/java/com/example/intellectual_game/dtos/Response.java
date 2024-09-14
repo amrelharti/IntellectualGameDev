@@ -1,6 +1,5 @@
 package com.example.intellectual_game.dtos;
 
-import com.example.intellectual_game.Entities.Player;
 import com.example.intellectual_game.enums.GameState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -76,8 +75,8 @@ public class Response {
         private String gameId;
         private String playerId;
         private String subject;
-        private String message; // Optional message, e.g., "Subject chosen successfully"
     }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -85,7 +84,12 @@ public class Response {
     public static class PlayerReadyResponse {
         private String gameId;
         private String playerId;
+        private List<String> readyPlayers;
+        private List<String> allPlayers;
+        private GameState gameState;
+        private boolean allPlayersReady;
     }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -94,6 +98,7 @@ public class Response {
         private String gameId;
         private GameState gameState;
     }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -102,6 +107,7 @@ public class Response {
         private String gameId;
         private GameState state;
     }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -112,6 +118,7 @@ public class Response {
         private List<String> players;
         private String message;
     }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -119,5 +126,61 @@ public class Response {
     public static class PlayerNameResponse {
         private String playerId;
         private String username;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class QuestionReceivedResponse {
+        private String question;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class AnswerResultResponse {
+        private boolean correct;
+        private int points;
+        private boolean isLastQuestion;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class TurnEndedResponse {
+        private String gameId;
+        private String currentPlayer;
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GameUpdateResponse {
+        private String gameId;
+        private GameState gameState;
+        private List<String> players;
+        private List<String> readyPlayers;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NextQuestionResponse {
+        private String id;
+        private String text;
+        private List<String> options;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnswerSubmittedResponse {
+        private String gameId;
+        private int score;
+        private GameState gameState;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AvailableSubjectsResponse {
+        private List<String> subjects;
     }
 }

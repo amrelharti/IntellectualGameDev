@@ -34,14 +34,6 @@ const AdminPanel = () => {
                 </div>
             </div>
 
-            <div className={`manage-section ${activeSection === 'answers' ? 'active' : ''}`}>
-                <h3 onClick={() => toggleSection('answers')}>
-                    Manage Answer Operations {activeSection === 'answers' ? <FaChevronUp /> : <FaChevronDown />}
-                </h3>
-                <div className="content">
-                    {activeSection === 'answers' && <ManageAnswerOperations />}
-                </div>
-            </div>
         </div>
     );
 };
