@@ -1,4 +1,3 @@
-// GamePage.js
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../../state/GlobaleState';
@@ -14,7 +13,7 @@ const GamePage = () => {
     const navigate = useNavigate();
     const [isConnecting, setIsConnecting] = useState(false);
 
-    const handleStartGame = async () => {
+    const handleStartSinglePlayerGame = async () => {
         if (isConnecting || !isConnected) {
             console.log('Not connected or already attempting to connect, ignoring click');
             return;
@@ -22,7 +21,43 @@ const GamePage = () => {
 
         setIsConnecting(true);
         try {
-            console.log('Attempting to auto-join game...');
+            console.log('Attempting to start single player game...');
+            console.log('Player ID:', state.player.id);
+            const game = await WebSocketService.createSinglePlayerGame(state.player.id);
+            console.log('Received game object:', game);
+
+            if (!game || !game.gameId) {
+                throw new Error('Invalid game object received');
+            }
+
+            console.log('Dispatching SET_GAME action');
+            dispatch({ type: 'SET_GAME', payload: game });
+            console.log('Game set in state, game ID:', game.gameId);
+
+            dispatch({ type: 'SET_GAME_STATE', payload: 'IN_PROGRESS' });
+            console.log('Game state set to IN_PROGRESS');
+
+            console.log('Navigating to game room...');
+            navigate(`/gameroom/${game.gameId}`);
+            console.log('Navigation called');
+        } catch (error) {
+            console.error('Error in handleStartSinglePlayerGame:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to start single player game: ' + error.message });
+            alert(`Failed to start single player game: ${error.message}`);
+        } finally {
+            setIsConnecting(false);
+        }
+    };
+
+    const handleStartMultiplayerGame = async () => {
+        if (isConnecting || !isConnected) {
+            console.log('Not connected or already attempting to connect, ignoring click');
+            return;
+        }
+
+        setIsConnecting(true);
+        try {
+            console.log('Attempting to auto-join multiplayer game...');
             console.log('Player ID:', state.player.id);
             const game = await WebSocketService.autoJoinGame(state.player.id);
             console.log('Received game object:', game);
@@ -42,9 +77,9 @@ const GamePage = () => {
             navigate(`/waitingroom/${game.gameId}`);
             console.log('Navigation called');
         } catch (error) {
-            console.error('Error in handleStartGame:', error);
-            dispatch({ type: 'SET_ERROR', payload: 'Failed to join/create game: ' + error.message });
-            alert(`Failed to join/create game: ${error.message}`);
+            console.error('Error in handleStartMultiplayerGame:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to join/create multiplayer game: ' + error.message });
+            alert(`Failed to join/create multiplayer game: ${error.message}`);
         } finally {
             setIsConnecting(false);
         }
@@ -69,12 +104,20 @@ const GamePage = () => {
             <div className="hero-section">
                 <h1 className="animated-text">Welcome, {state.player.username}!</h1>
                 {!isConnected && <div>Connecting to game server...</div>}
-                <button
-                    className={`start-btn ${isConnecting || !isConnected ? 'disabled' : ''}`}
-                    onClick={handleStartGame}
-                    disabled={isConnecting || !isConnected}>
-                    {isConnecting ? 'Connecting...' : 'Start Game'}
-                </button>
+                <div className="game-buttons">
+                    <button
+                        className={`start-btn ${isConnecting || !isConnected ? 'disabled' : ''}`}
+                        onClick={handleStartSinglePlayerGame}
+                        disabled={isConnecting || !isConnected}>
+                        {isConnecting ? 'Starting...' : 'Start Single Player Game'}
+                    </button>
+                    <button
+                        className={`start-btn ${isConnecting || !isConnected ? 'disabled' : ''}`}
+                        onClick={handleStartMultiplayerGame}
+                        disabled={isConnecting || !isConnected}>
+                        {isConnecting ? 'Joining...' : 'Join Multiplayer Game'}
+                    </button>
+                </div>
                 <Slideshow />
                 <div className="dynamic-hero-section">
                     <div className="dynamic-content">
@@ -86,7 +129,7 @@ const GamePage = () => {
                         <div className="dynamic-text">
                             <h2>Unleash Your Knowledge!</h2>
                             <p>
-                                Dive into an exciting trivia adventure with challenges tailored for you! Play alone or against friends in real-time, choosing your answer style: strategic, bold, or calculated. Each game is a step towards becoming the ultimate quiz champion. Ready to play? Hit the start button and let the journey begin!
+                                Dive into an exciting trivia adventure with challenges tailored for you! Play alone or against friends in real-time, choosing your answer style: strategic, bold, or calculated. Each game is a step towards becoming the ultimate quiz champion. Ready to play? Choose your game mode and let the journey begin!
                             </p>
                         </div>
                     </div>

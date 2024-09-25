@@ -45,8 +45,11 @@ const reducer = (state, action) => {
                 game: updatedGame,
                 gameState: action.payload.gameState || state.gameState,
             };
-        case 'UPDATE_SCORES':
-            return { ...state, game: { ...state.game, scores: action.payload } };
+        case 'UPDATE_SCORE':
+            return {
+                ...state,
+                score: action.payload
+            };
         case 'SET_WINNER':
             return { ...state, game: { ...state.game, winner: action.payload } };
         case 'UPDATE_PLAYERS':

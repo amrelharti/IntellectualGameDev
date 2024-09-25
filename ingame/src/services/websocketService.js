@@ -296,10 +296,17 @@ const WebSocketService = {
         sendMessage('/app/game.chooseSubject', { gameId, playerId, subject }),
     requestQuestion: (gameId, playerId) =>
         sendMessage('/app/game.requestQuestion', { gameId, playerId }),
-    submitAnswer: (gameId, playerId, questionId, answer, answerType) =>
-        sendMessage('/app/game.submitAnswer', { gameId, playerId, questionId, answer, answerType }),
+
     endTurn: (gameId) =>
         sendMessage('/app/game.endTurn', { gameId }),
+    createSinglePlayerGame: (playerId) =>
+        sendMessage('/app/game.createSinglePlayer', { playerId }),
+
+    getNextQuestion: (gameId) =>
+        sendMessage('/app/game.getNextQuestion', { gameId }),
+
+    submitAnswer: (gameId, questionId, answer, answerType) =>
+        sendMessage('/app/game.submitAnswer', { gameId, questionId, answer, answerType }),
 };
 
 export default WebSocketService;

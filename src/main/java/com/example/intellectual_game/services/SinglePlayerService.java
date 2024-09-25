@@ -1,12 +1,20 @@
 package com.example.intellectual_game.services;
 
-import com.example.intellectual_game.Entities.*;
-import com.example.intellectual_game.Repo.*;
+import com.example.intellectual_game.Entities.Game;
+import com.example.intellectual_game.Entities.Player;
+import com.example.intellectual_game.Entities.Subject;
+import com.example.intellectual_game.Entities.Question;
+import com.example.intellectual_game.Repo.GameRepo;
+import com.example.intellectual_game.Repo.PlayerRepo;
+import com.example.intellectual_game.Repo.QuestionRepo;
 import com.example.intellectual_game.enums.GameState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,9 +29,6 @@ public class SinglePlayerService {
     @Autowired
     private QuestionRepo questionRepository;
 
-    @Autowired
-    private SubjectRepo subjectRepository;
-
     public Game createSinglePlayerGame(String playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
@@ -32,47 +37,48 @@ public class SinglePlayerService {
                 .state(GameState.IN_PROGRESS)
                 .scores(0)
                 .currentPlayer(player)
-                .players(new ArrayList<>(Collections.singletonList(playerId)))
+                .players(Collections.singletonList(playerId))
                 .usedQuestionIds(new ArrayList<>())
                 .build();
 
         return gameRepository.save(game);
     }
 
-    public Game chooseSubject(String gameId, String subject) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Game not found"));
-
-        game.setSubjectsChosen(Collections.singletonList(subject));
-        game.setState(GameState.IN_PROGRESS);
-
-        return gameRepository.save(game);
-    }
-
     public Question getNextQuestion(String gameId) {
+        // Retrieve the game object
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
 
-        List<Subject> subjects = subjectRepository.findByNameIn(game.getSubjectsChosen());
-        List<Question> availableQuestions = subjects.stream()
-                .flatMap(s -> s.getQuestions().stream())
+        // Fetch questions that haven't been used in the game yet
+        List<Question> availableQuestions = questionRepository.findAll().stream()
                 .filter(q -> !game.getUsedQuestionIds().contains(q.getId()))
-                .collect(Collectors.toList());
+                .toList();
 
+        // If no more questions are available, throw an exception
         if (availableQuestions.isEmpty()) {
-            game.setState(GameState.FINISHED);
-            gameRepository.save(game);
             throw new RuntimeException("No more questions available");
         }
 
-        Question nextQuestion = availableQuestions.get(new Random().nextInt(availableQuestions.size()));
+        // Randomly select the next question from the available questions
+        Random random = new Random();
+        Question nextQuestion = availableQuestions.get(random.nextInt(availableQuestions.size()));
+
+        // Add the selected question's ID to the used question list and save the game state
         game.getUsedQuestionIds().add(nextQuestion.getId());
         gameRepository.save(game);
+
+        // Ensure the correct answer is part of the options
+        List<String> options = new ArrayList<>(nextQuestion.getOptions());
+        options.add(nextQuestion.getCorrectAnswer()); // Add the correct answer
+        Collections.shuffle(options); // Shuffle the options to randomize
+
+        // Set the shuffled options in the question object
+        nextQuestion.setOptions(options);
 
         return nextQuestion;
     }
 
-    public Game submitAnswer(String gameId, String questionId, String answer, String answerMethod) {
+    public Game submitAnswer(String gameId, String questionId, String answer, String answerType) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
 
@@ -80,30 +86,22 @@ public class SinglePlayerService {
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
         boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answer);
-        int score = isCorrect ? calculateScore(answerMethod) : 0;
+        int score = isCorrect ? 10 : 0; // You can adjust the scoring logic as needed
 
         game.setScores(game.getScores() + score);
 
-        if (game.getUsedQuestionIds().size() >= 5) {  // Assuming 5 questions per game
+        if (game.getUsedQuestionIds().size() >= 10) { // Assuming 10 questions per game
             game.setState(GameState.FINISHED);
         }
 
         return gameRepository.save(game);
     }
 
-    private int calculateScore(String answerMethod) {
-        // Implement your scoring logic based on the answer method
-        return switch (answerMethod.toLowerCase()) {
-            case "carre" -> 10;
-            case "duo" -> 5;
-            case "cash" -> 15;
-            default -> 0;
-        };
-    }
-
     public List<String> getAvailableSubjects() {
-        return subjectRepository.findAll().stream()
-                .map(Subject::getName)
+        return questionRepository.findAll().stream()
+                .map(Question::getSubject)
+                .distinct()
+                .map(Subject::getName)  // Assuming Subject has a getName() method
                 .collect(Collectors.toList());
     }
 }

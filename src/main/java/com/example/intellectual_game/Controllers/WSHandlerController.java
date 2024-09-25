@@ -182,18 +182,17 @@ public class WSHandlerController {
         return new Response.GameStartedResponse(game.getId(), game.getState());
     }
 
+    @MessageMapping("/game.getAvailableSubjects")
+    @SendToUser("/queue/responses")
+    public Response.AvailableSubjectsResponse getAvailableSubjects() {
+        List<String> subjects = singlePlayerService.getAvailableSubjects();
+        return new Response.AvailableSubjectsResponse(subjects);
+    }
     @MessageMapping("/game.createSinglePlayer")
     @SendToUser("/queue/responses")
     public Response.GameCreatedResponse createSinglePlayerGame(Request.CreateSinglePlayerRequest request) {
         Game game = singlePlayerService.createSinglePlayerGame(request.getPlayerId());
         return new Response.GameCreatedResponse(game.getId(), game.getState());
-    }
-
-    @MessageMapping("/game.chooseSubject")
-    @SendToUser("/queue/responses")
-    public Response.SubjectChosenResponse chooseSinglePlayerSubject(Request.ChooseSubjectRequest request) {
-        Game game = singlePlayerService.chooseSubject(request.getGameId(), request.getSubject());
-        return new Response.SubjectChosenResponse(game.getId(), request.getPlayerId(), request.getSubject());
     }
 
     @MessageMapping("/game.getNextQuestion")
@@ -208,12 +207,5 @@ public class WSHandlerController {
     public Response.AnswerSubmittedResponse submitSinglePlayerAnswer(Request.SubmitAnswerRequest request) {
         Game game = singlePlayerService.submitAnswer(request.getGameId(), request.getQuestionId(), request.getAnswer(), request.getAnswerType());
         return new Response.AnswerSubmittedResponse(game.getId(), game.getScores(), game.getState());
-    }
-
-    @MessageMapping("/game.getAvailableSubjects")
-    @SendToUser("/queue/responses")
-    public Response.AvailableSubjectsResponse getAvailableSubjects() {
-        List<String> subjects = singlePlayerService.getAvailableSubjects();
-        return new Response.AvailableSubjectsResponse(subjects);
     }
 }
