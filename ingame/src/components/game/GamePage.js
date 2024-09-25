@@ -13,6 +13,7 @@ const GamePage = () => {
     const navigate = useNavigate();
     const [isConnecting, setIsConnecting] = useState(false);
 
+
     const handleStartSinglePlayerGame = async () => {
         if (isConnecting || !isConnected) {
             console.log('Not connected or already attempting to connect, ignoring click');

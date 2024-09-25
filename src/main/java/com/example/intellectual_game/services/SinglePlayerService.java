@@ -77,7 +77,6 @@ public class SinglePlayerService {
 
         return nextQuestion;
     }
-
     public Game submitAnswer(String gameId, String questionId, String answer, String answerType) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
@@ -86,16 +85,31 @@ public class SinglePlayerService {
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
         boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answer);
-        int score = isCorrect ? 10 : 0; // You can adjust the scoring logic as needed
+        int score = 0;
+
+        switch (answerType) {
+            case "CARRÉ":
+                score = isCorrect ? 10 : 0;
+                break;
+            case "DUO":
+                score = isCorrect ? 5 : 0;
+                break;
+            case "CASH":
+                score = isCorrect ? 15 : 0;
+                break;
+        }
 
         game.setScores(game.getScores() + score);
 
-        if (game.getUsedQuestionIds().size() >= 10) { // Assuming 10 questions per game
+        // Mark game as finished only if 10 questions have been answered
+        if (game.getUsedQuestionIds().size() >= 10) {
             game.setState(GameState.FINISHED);
         }
 
         return gameRepository.save(game);
     }
+
+
 
     public List<String> getAvailableSubjects() {
         return questionRepository.findAll().stream()
