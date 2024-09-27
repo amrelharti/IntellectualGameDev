@@ -166,6 +166,7 @@ public class Response {
         private String id;
         private String text;
         private List<String> options;
+        private String correctAnswer;
     }
 
     @Data

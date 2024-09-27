@@ -49,7 +49,12 @@ const GamePage = () => {
             setIsConnecting(false);
         }
     };
-
+    const scrollToSection = (sectionId) => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
     const handleStartMultiplayerGame = async () => {
         if (isConnecting || !isConnected) {
             console.log('Not connected or already attempting to connect, ignoring click');
@@ -95,15 +100,14 @@ const GamePage = () => {
             <header className="header">
                 <div>GameZone</div>
                 <nav className="nav">
-                    <a href="#">Home</a>
-                    <a href="#">About</a>
-                    <a href="#">Leaderboard</a>
-                    <a href="#">Settings</a>
+                    <a href="#" onClick={() => scrollToSection('home')}>Home</a>
+                    <a href="#" onClick={() => scrollToSection('About')}>About</a>
+                    <a href="#" onClick={() => scrollToSection('Categories')}>Categories</a>
                 </nav>
             </header>
 
-            <div className="hero-section">
-                <h1 className="animated-text">Welcome, {state.player.username}!</h1>
+            <div className="hero-section" id="home">
+                <h1 className="animated-text">Welcome, {state.player.username} !</h1>
                 {!isConnected && <div>Connecting to game server...</div>}
                 <div className="game-buttons">
                     <button
@@ -120,7 +124,7 @@ const GamePage = () => {
                     </button>
                 </div>
                 <Slideshow />
-                <div className="dynamic-hero-section">
+                <div className="dynamic-hero-section" id="About">
                     <div className="dynamic-content">
                         <div className="decorative-icons">
                             <span className="icon icon-lightbulb"></span>
@@ -135,8 +139,10 @@ const GamePage = () => {
                         </div>
                     </div>
                 </div>
+                <h1>Categories :</h1>
             </div>
-            <Categories />
+
+            <Categories id="Categories" />
             <Footer />
 
             <div className="background-animations"></div>

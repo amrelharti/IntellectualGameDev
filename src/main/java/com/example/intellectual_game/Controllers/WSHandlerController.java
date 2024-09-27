@@ -199,7 +199,7 @@ public class WSHandlerController {
     @SendToUser("/queue/responses")
     public Response.NextQuestionResponse getNextQuestion(Request.NextQuestionRequest request) {
         Question question = singlePlayerService.getNextQuestion(request.getGameId());
-        return new Response.NextQuestionResponse(question.getId(), question.getText(), question.getOptions());
+        return new Response.NextQuestionResponse(question.getId(), question.getText(), question.getOptions(),question.getCorrectAnswer());
     }
 
     @MessageMapping("/game.submitAnswer")

@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../../state/GlobaleState';
 import { WebSocketContext } from '../../services/WebSocketProvider';
+import './GameRoom.css';
 
 const GameRoom = () => {
     const { gameId } = useParams();
+    const navigate = useNavigate();
     const { state, dispatch } = useContext(GlobalContext);
     const { WebSocketService } = useContext(WebSocketContext);
     const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -14,99 +16,147 @@ const GameRoom = () => {
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
     const [questionCount, setQuestionCount] = useState(0);
+    const [timer, setTimer] = useState(10);
+    const TOTAL_QUESTIONS = 10;
+    const timerRef = useRef(null);
 
-    useEffect(() => {
-        getNextQuestion();
-    }, []);
-
+    // Define getNextQuestion before useEffect
     const getNextQuestion = async () => {
         try {
+            if (questionCount >= TOTAL_QUESTIONS) {
+                setGameOver(true);
+                return;
+            }
+
             const question = await WebSocketService.getNextQuestion(gameId);
             console.log("Received question:", question);
             setCurrentQuestion(question);
+            console.log("Correct answer:", question.correctAnswer);
+
             setSelectedAnswerType('');
             setOptions([]);
             setSelectedAnswer('');
-            setQuestionCount(prev => prev + 1);
+            setQuestionCount(prevCount => prevCount + 1);
+            setTimer(15); // Reset timer for new question
         } catch (error) {
             console.error('Error fetching question:', error);
-            setGameOver(true);
         }
     };
 
+    useEffect(() => {
+        getNextQuestion();
+    }, []); // Use empty array to call on component mount only
+
+    useEffect(() => {
+        if (timer > 0 && currentQuestion) {
+            timerRef.current = setTimeout(() => setTimer(timer - 1), 1000);
+        } else if (timer === 0 && currentQuestion) {
+            handleAnswerSubmit();
+        }
+        return () => clearTimeout(timerRef.current);
+    }, [timer, currentQuestion]);
+
     const handleAnswerTypeSelect = (type) => {
         setSelectedAnswerType(type);
-
-        // Set the options based on the answer type
         if (type === 'Carré') {
-            setOptions([...currentQuestion.options]); // All 4 options
+            setOptions([...currentQuestion.options]);
         } else if (type === 'Duo') {
-            setOptions(currentQuestion.options.slice(0, 2)); // Only 2 options
+            setOptions(currentQuestion.options.slice(0, 2));
         } else if (type === 'Cash') {
-            setOptions([]); // No options for Cash, user will input manually
+            setOptions([]);
         }
     };
 
     const handleAnswerSubmit = async () => {
-        if (selectedAnswerType === 'Cash' && !selectedAnswer) return; // For Cash, the answer is input manually
-        if ((selectedAnswerType === 'Carré' || selectedAnswerType === 'Duo') && !selectedAnswer) return; // Ensure an answer is selected
+        clearTimeout(timerRef.current);
+        if (!currentQuestion) return;
 
         try {
+            console.log(`Submitting answer: ${selectedAnswer} (${selectedAnswerType})`);
             const result = await WebSocketService.submitAnswer(
                 gameId,
                 currentQuestion.id,
-                selectedAnswerType === 'Cash' ? selectedAnswer : selectedAnswer,
+                selectedAnswer,
                 selectedAnswerType
             );
             console.log("Submit answer result:", result);
 
-            if (result && typeof result.score === 'number') {
-                setScore(result.score);
-                dispatch({ type: 'UPDATE_SCORE', payload: result.score });
+            let points = 0;
+            const correctAnswer = currentQuestion.correctAnswer;
+
+            if (selectedAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                if (selectedAnswerType === 'Carré') points = 10;
+                else if (selectedAnswerType === 'Duo') points = 5;
+                else if (selectedAnswerType === 'Cash') points = 15;
+                console.log("Answer was correct.");
+            } else {
+                console.log("Answer was incorrect.");
             }
 
-            if (result && (result.gameState === 'FINISHED' || questionCount >= 10)) {
+            const newScore = score + points;
+            setScore(newScore);
+            if (state.player && state.player.id) {
+                dispatch({ type: 'UPDATE_SCORE', payload: { playerId: state.player.id, newScore } });
+            }
+            console.log(`Score updated: ${score} + ${points} = ${newScore}`);
+
+            if (questionCount >= TOTAL_QUESTIONS) {
                 setGameOver(true);
             } else {
-                setTimeout(getNextQuestion, 1000); // Wait 2 seconds before moving to the next question
+                setTimeout(getNextQuestion, 1000);
             }
         } catch (error) {
             console.error('Error submitting answer:', error);
+            if (questionCount < TOTAL_QUESTIONS) {
+                setTimeout(getNextQuestion, 1000);
+            } else {
+                setGameOver(true);
+            }
         }
     };
+
+    const handleBackToHome = () => {
+        // Navigate to home without losing WebSocket connection
+        navigate('/start', { replace: true });
+    };
+
+    const handleReplay = () => {
+        // Refresh the page to replay the game
+        window.location.reload();
+    };
+
 
     if (gameOver) {
         return (
             <div className="game-room">
-                <h2>Game Over!</h2>
-                <p>Your final score: {score}</p>
+                <h2 className="game-over">Game Over!</h2>
+                <p className="final-score">Your final score: {score}</p>
+                <button className="replay-btn" onClick={handleReplay}>Replay</button>
+                <button className="home-btn" onClick={handleBackToHome}>Back to Home</button>
             </div>
         );
     }
 
     return (
         <div className="game-room">
-            <h2>Single Player Game</h2>
-            <p>Score: {score}</p>
-            <p>Question {questionCount} of 10</p>
+            <p className="game-question-count">Question {questionCount} of {TOTAL_QUESTIONS}</p>
+            <p className="timer">Time left: {timer} seconds</p>
+            <p className="game-score">Score: {score}</p>
             {currentQuestion && (
                 <div className="question-container">
-                    <h3>{currentQuestion.text}</h3>
-
-                    {/* Answer type selection */}
+                    <h3 className="question-text">{currentQuestion.text}</h3>
                     {!selectedAnswerType && (
                         <div className="answer-type-selection">
-                            <button onClick={() => handleAnswerTypeSelect('Carré')}>Carré (10 points)</button>
-                            <button onClick={() => handleAnswerTypeSelect('Duo')}>Duo (5 points)</button>
-                            <button onClick={() => handleAnswerTypeSelect('Cash')}>Cash (15 points)</button>
+                            <button className="answer-type-btn" onClick={() => handleAnswerTypeSelect('Carré')}>Carré (10 points)</button>
+                            <button className="answer-type-btn" onClick={() => handleAnswerTypeSelect('Duo')}>Duo (5 points)</button>
+                            <button className="answer-type-btn" onClick={() => handleAnswerTypeSelect('Cash')}>Cash (15 points)</button>
                         </div>
                     )}
-
-                    {/* Display options after answer type is selected */}
                     {selectedAnswerType && (
                         <div className="options">
                             {selectedAnswerType === 'Cash' ? (
                                 <input
+                                    className="answer-input"
                                     type="text"
                                     placeholder="Enter your answer"
                                     value={selectedAnswer}
@@ -117,17 +167,13 @@ const GameRoom = () => {
                                     <button
                                         key={index}
                                         onClick={() => setSelectedAnswer(option)}
-                                        className={selectedAnswer === option ? 'selected' : ''}
-                                        style={{
-                                            backgroundColor: selectedAnswer === option ? '#4CAF50' : '',
-                                            color: selectedAnswer === option ? 'white' : ''
-                                        }}
+                                        className={`option-btn ${selectedAnswer === option ? 'selected' : ''}`}
                                     >
                                         {option}
                                     </button>
                                 ))
                             )}
-                            <button onClick={handleAnswerSubmit} disabled={!selectedAnswer}>
+                            <button className="submit-answer-btn" onClick={handleAnswerSubmit} disabled={!selectedAnswer}>
                                 Submit Answer
                             </button>
                         </div>

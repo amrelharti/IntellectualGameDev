@@ -67,16 +67,25 @@ public class SinglePlayerService {
         game.getUsedQuestionIds().add(nextQuestion.getId());
         gameRepository.save(game);
 
-        // Ensure the correct answer is part of the options
+        // Prepare options for the question
         List<String> options = new ArrayList<>(nextQuestion.getOptions());
-        options.add(nextQuestion.getCorrectAnswer()); // Add the correct answer
-        Collections.shuffle(options); // Shuffle the options to randomize
+
+        // Include the correct answer in the options
+        options.add(nextQuestion.getCorrectAnswer());
+
+        // Shuffle the options to randomize their order
+        Collections.shuffle(options);
 
         // Set the shuffled options in the question object
         nextQuestion.setOptions(options);
 
+        // Optionally, if you need to maintain the correct answer separately, you can
+        // create a temporary object or add a field to the Question class to hold it.
+        nextQuestion.setCorrectAnswer(nextQuestion.getCorrectAnswer()); // This line is optional if you need to retain it.
+
         return nextQuestion;
     }
+
     public Game submitAnswer(String gameId, String questionId, String answer, String answerType) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Game not found"));
@@ -84,17 +93,20 @@ public class SinglePlayerService {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answer);
+        boolean isCorrect = false;
         int score = 0;
 
         switch (answerType) {
             case "CARRÉ":
+                isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answer);
                 score = isCorrect ? 10 : 0;
                 break;
             case "DUO":
+                isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answer);
                 score = isCorrect ? 5 : 0;
                 break;
             case "CASH":
+                isCorrect = question.getCorrectAnswer().equalsIgnoreCase(answer); // Case-insensitive comparison
                 score = isCorrect ? 15 : 0;
                 break;
         }
@@ -108,6 +120,7 @@ public class SinglePlayerService {
 
         return gameRepository.save(game);
     }
+
 
 
 

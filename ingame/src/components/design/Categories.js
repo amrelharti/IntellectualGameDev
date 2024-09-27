@@ -22,7 +22,7 @@ const categories = [
 
 const Categories = () => {
     return (
-        <div className="categories-container">
+        <div className="categories-container" id={"Categories"}>
             {categories.map((category, index) => (
                 <div key={index} className="category-card">
                     <img src={category.image} alt={category.title} className="category-image" />

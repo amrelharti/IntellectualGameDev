@@ -48,7 +48,13 @@ const reducer = (state, action) => {
         case 'UPDATE_SCORE':
             return {
                 ...state,
-                score: action.payload
+                game: {
+                    ...state.game,
+                    scores: {
+                        ...state.game.scores,
+                        [action.payload.playerId]: action.payload.newScore,
+                    }
+                }
             };
         case 'SET_WINNER':
             return { ...state, game: { ...state.game, winner: action.payload } };

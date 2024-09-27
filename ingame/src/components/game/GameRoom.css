@@ -1,0 +1,112 @@
+.game-room {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-image: url('../../images/astro.webp');
+    min-height: 100vh;
+}
+
+.game-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+    animation: fadeIn 1.5s ease;
+}
+
+.game-score{
+    margin-top: 60px;
+    font-size: 3rem;
+    color: #e58d97;
+    margin-right: 220px;
+
+}
+.game-question-count {
+    font-size: 3rem;
+    color: #ffffff;
+}
+
+.question-container {
+    margin-top: 20px;
+    background: #3b7080;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: auto;
+    text-align: center;
+}
+
+.question-text {
+    font-size: 1.8rem;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.answer-type-selection, .options {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.answer-type-btn, .option-btn {
+    background-color: #45050c;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.submit-answer-btn {
+    background-color: #000000;
+    color: #ffffff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.answer-type-btn:hover, .option-btn:hover, .submit-answer-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background-color: #28a745;
+
+}
+
+.option-btn.selected {
+    background-color: #28a745;
+}
+
+.answer-input {
+    padding: 10px;
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    width: 80%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.game-over {
+    font-size: 2.5rem;
+    color: #e74c3c;
+}
+
+.final-score {
+    font-size: 1.8rem;
+    color: #ffffff;
+}
+
+.timer{
+    margin-top: 20px;
+    margin-bottom: 10px;
+}

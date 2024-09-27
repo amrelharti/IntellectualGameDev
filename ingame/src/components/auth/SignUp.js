@@ -20,7 +20,7 @@ const SignUp = () => {
         try {
             const player = await signUpUser(username, email, password);
             dispatch({ type: 'SET_PLAYER', payload: player });
-            navigate('/game');
+            navigate('/login');
         } catch (error) {
             dispatch({ type: 'SET_ERROR', payload: error.message });
         } finally {
